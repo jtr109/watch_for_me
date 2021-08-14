@@ -7,7 +7,10 @@ const URL: &str = "https://www.dongao.com/zckjs/zkz/202107063478415.shtml";
 async fn main() -> Result<()> {
     let status = get_status_of_js(&get_document().await?);
     if status != "暂未开通" {
-        println!("The status is {} now!", status);
+        println!(
+            "The status is {} now! Visit {} for more details.",
+            status, URL
+        );
         std::process::exit(0);
     } else {
         eprintln!("The status it still 暂未开通.");
