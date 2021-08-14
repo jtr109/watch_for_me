@@ -1,0 +1,25 @@
+name: CPA Examination Pass Check
+on:
+  push:
+  schedule:
+    - cron: '*/20 * * * *'
+jobs:
+  parse:
+    name: parse web page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+  notify:
+    name: notify message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            准考证信息已更新，前往 https://www.dongao.com/zckjs/zkz/202107063478415.shtml 查看！
