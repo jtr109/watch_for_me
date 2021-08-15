@@ -14,19 +14,13 @@ const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 #[tokio::main]
 async fn main() {
     loop {
-        sleep(Duration::from_secs(1)).await;
         let status = get_status_of_js(&get_document().await.expect("unable to get document"));
         if status != "暂未开通" {
-            println!(
-                "The status is {} now! Visit {} for more details.",
-                status, URL
-            );
-            send_message().await;
             break;
-        } else {
-            eprintln!("The status it still 暂未开通.");
         }
+        sleep(Duration::from_secs(1)).await;
     }
+    send_message(&format!("注会信息有更新，请前往查看 {}", URL)).await;
 }
 
 async fn get_document() -> Result<String> {
@@ -56,7 +50,7 @@ fn get_status_of_js(doc: &str) -> String {
     status.trim().to_string()
 }
 
-async fn send_message() {
+async fn send_message(message: &str) {
     let bot = Bot::new(std::env::var(TELEGRAM_TOKEN_KEY).expect(&format!(
         "failed to get environment variable {}",
         TELEGRAM_TOKEN_KEY
@@ -66,7 +60,7 @@ async fn send_message() {
             "failed to get environment variable {}",
             TELEGRAM_TO_KEY,
         )),
-        format!("注会信息有更新，请前往查看 {}", URL),
+        message,
     );
     JsonRequest::new(bot, payload)
         .send()
