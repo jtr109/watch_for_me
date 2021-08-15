@@ -12,3 +12,6 @@ soup = "0.5.1"
 telegram-bot = "0.8.0"
 teloxide-core = "0.3.3"
 tokio = { version = "1.10.0", features = ["full"] }
+
+[profile.release]
+codegen-units=1
