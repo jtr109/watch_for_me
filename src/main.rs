@@ -13,6 +13,7 @@ const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 
 #[tokio::main]
 async fn main() {
+    send_message("开始监控注会信息更新……").await;
     loop {
         let status = get_status_of_js(&get_document().await.expect("unable to get document"));
         if status != "暂未开通" {
