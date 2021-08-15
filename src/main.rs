@@ -1,7 +1,14 @@
 use anyhow::Result;
 use soup::prelude::*;
+use teloxide_core::{
+    payloads::SendMessage,
+    requests::{JsonRequest, Request},
+    Bot,
+};
 
 const URL: &str = "https://www.dongao.com/zckjs/zkz/202107063478415.shtml";
+const TELEGRAM_TOKEN_KEY: &str = "TELEGRAM_TOKEN";
+const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -11,6 +18,7 @@ async fn main() -> Result<()> {
             "The status is {} now! Visit {} for more details.",
             status, URL
         );
+        send_message().await;
         std::process::exit(0);
     } else {
         eprintln!("The status it still 暂未开通.");
@@ -45,4 +53,22 @@ fn get_status_of_js(doc: &str) -> String {
         .text();
     println!("status: {}", status.trim());
     status.trim().to_string()
+}
+
+async fn send_message() {
+    let bot = Bot::new(std::env::var(TELEGRAM_TOKEN_KEY).expect(&format!(
+        "failed to get environment variable {}",
+        TELEGRAM_TOKEN_KEY
+    )));
+    let payload = SendMessage::new(
+        std::env::var(TELEGRAM_TO_KEY).expect(&format!(
+            "failed to get environment variable {}",
+            TELEGRAM_TO_KEY,
+        )),
+        format!("注会信息有更新，请前往查看 {}", URL),
+    );
+    JsonRequest::new(bot, payload)
+        .send()
+        .await
+        .expect("failed to send message");
 }
