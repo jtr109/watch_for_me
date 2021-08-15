@@ -5,24 +5,27 @@ use teloxide_core::{
     requests::{JsonRequest, Request},
     Bot,
 };
+use tokio::time::{sleep, Duration};
 
 const URL: &str = "https://www.dongao.com/zckjs/zkz/202107063478415.shtml";
 const TELEGRAM_TOKEN_KEY: &str = "TELEGRAM_TOKEN";
 const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 
 #[tokio::main]
-async fn main() -> Result<()> {
-    let status = get_status_of_js(&get_document().await?);
-    if status != "暂未开通" {
-        println!(
-            "The status is {} now! Visit {} for more details.",
-            status, URL
-        );
-        send_message().await;
-        std::process::exit(0);
-    } else {
-        eprintln!("The status it still 暂未开通.");
-        std::process::exit(1);
+async fn main() {
+    loop {
+        sleep(Duration::from_secs(1)).await;
+        let status = get_status_of_js(&get_document().await.expect("unable to get document"));
+        if status != "暂未开通" {
+            println!(
+                "The status is {} now! Visit {} for more details.",
+                status, URL
+            );
+            send_message().await;
+            break;
+        } else {
+            eprintln!("The status it still 暂未开通.");
+        }
     }
 }
 
@@ -38,7 +41,6 @@ fn get_status_of_js(doc: &str) -> String {
         .find_all()
         .find(|strong| strong.text().trim() == js_text)
         .expect("cannot find a strong node contains 江苏");
-    println!("{}", js_strong_node.text());
     let js_tr_node = js_strong_node
         .parents()
         .nth(1)
@@ -51,7 +53,6 @@ fn get_status_of_js(doc: &str) -> String {
         .nth(1)
         .expect("the td node contains 江苏 does not have a 2nd children node") // span
         .text();
-    println!("status: {}", status.trim());
     status.trim().to_string()
 }
 
