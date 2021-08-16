@@ -1,8 +1,8 @@
 name: CPA Examination Pass Check
 on:
-  push:
-  schedule:
-    - cron: '*/20 * * * *'
+  # push:
+  # schedule:
+  #   - cron: '*/20 * * * *'
 jobs:
   parse:
     name: parse web page
