@@ -1,8 +1,5 @@
 name: CPA Examination Pass Check
-on:
-  # push:
-  # schedule:
-  #   - cron: '*/20 * * * *'
+on: push
 jobs:
   parse:
     name: parse web page
@@ -14,17 +11,22 @@ jobs:
           toolchain: stable
       - uses: actions-rs/cargo@v1
         with:
-          command: run
-  notify:
-    name: send a notification
-    needs: [parse]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: send custom message with args
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: |
-          准考证信息已更新！ https://www.dongao.com/zckjs/zkz/202107063478415.shtml
+          command: build
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Archive binary
+          path: target/release/watch_for_me
+  # notify:
+  #   name: send a notification
+  #   needs: [parse]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@master
+  #   - name: send custom message with args
+  #     uses: appleboy/telegram-action@master
+  #     with:
+  #       to: ${{ secrets.TELEGRAM_TO }}
+  #       token: ${{ secrets.TELEGRAM_TOKEN }}
+  #       message: |
+  #         准考证信息已更新！ https://www.dongao.com/zckjs/zkz/202107063478415.shtml
