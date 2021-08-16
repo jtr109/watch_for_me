@@ -1,5 +1,5 @@
 name: CPA Examination Pass Check
-on: push
+on: [push]
 jobs:
   parse:
     name: parse web page
@@ -11,12 +11,12 @@ jobs:
           toolchain: stable
       - uses: actions-rs/cargo@v1
         with:
-          command: build
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: Archive binary
-          path: target/release/watch_for_me
+          command: check
+      # - name: Archive code coverage results
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Archive binary
+      #     path: target/release/watch_for_me
   # notify:
   #   name: send a notification
   #   needs: [parse]
