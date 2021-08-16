@@ -1,4 +1,9 @@
+use anyhow::Result;
+use chrono::Local;
+use env_logger::Builder;
+use log::LevelFilter;
 use soup::prelude::*;
+use std::io::Write;
 use teloxide_core::{
     payloads::SendMessage,
     requests::{JsonRequest, Request},
@@ -11,31 +16,59 @@ const TELEGRAM_TOKEN_KEY: &str = "TELEGRAM_TOKEN";
 const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 const USER_AGENT: &str =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0";
+const DURATION: u64 = 5;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
+    init_logger();
     send_message("开始监控注会信息更新……").await;
     loop {
-        let status = get_status_of_js(&get_document().await);
+        let doc = match get_document().await {
+            Ok(d) => d,
+            Err(e) => {
+                log::warn!("{}", e);
+                sleep(Duration::from_secs(DURATION)).await;
+                continue;
+            }
+        };
+        let status = get_status_of_js(&doc);
         if status != "暂未开通" {
             break;
         }
-        sleep(Duration::from_secs(1)).await;
+        log::info!(
+            "the status is still \"not opened\", will try again in {} minutes.",
+            DURATION
+        );
+        sleep(Duration::from_secs(DURATION)).await;
     }
     send_message(&format!("注会信息有更新，请前往查看 {}", URL)).await;
+    Ok(())
 }
 
-async fn get_document() -> String {
+fn init_logger() {
+    Builder::new()
+        .format(|buf, record| {
+            writeln!(
+                buf,
+                "{} [{}] - {}",
+                Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                record.level(),
+                record.args()
+            )
+        })
+        .filter(None, LevelFilter::Info)
+        .init();
+}
+
+async fn get_document() -> Result<String> {
     let client = reqwest::Client::new();
-    client
+    Ok(client
         .get(URL)
         .header("User-Agent", USER_AGENT)
         .send()
-        .await
-        .expect("cannot get page")
+        .await?
         .text()
-        .await
-        .expect("cannot get text from page")
+        .await?)
 }
 
 fn get_status_of_js(doc: &str) -> String {
