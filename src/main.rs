@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
         .unwrap_or("60".to_string())
         .parse::<u64>()
         .expect("failed to parse environment variable DURATION");
-    send_message("开始监控注会信息更新……").await;
+    send_message(&format!("开始监控注会信息更新，时间间隔{}秒", duration)).await;
     loop {
         let doc = match get_document().await {
             Ok(d) => d,
