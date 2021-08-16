@@ -16,18 +16,21 @@ const TELEGRAM_TOKEN_KEY: &str = "TELEGRAM_TOKEN";
 const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
 const USER_AGENT: &str =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0";
-const DURATION: u64 = 5;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     init_logger();
+    let duration = std::env::var("DURATION")
+        .unwrap_or("60".to_string())
+        .parse::<u64>()
+        .expect("failed to parse environment variable DURATION");
     send_message("开始监控注会信息更新……").await;
     loop {
         let doc = match get_document().await {
             Ok(d) => d,
             Err(e) => {
                 log::warn!("{}", e);
-                sleep(Duration::from_secs(DURATION)).await;
+                sleep(Duration::from_secs(duration)).await;
                 continue;
             }
         };
@@ -36,10 +39,10 @@ async fn main() -> Result<()> {
             break;
         }
         log::info!(
-            "the status is still \"not opened\", will try again in {} minutes.",
-            DURATION
+            "the status is still \"not opened\", will try again in {} seconds.",
+            duration
         );
-        sleep(Duration::from_secs(DURATION)).await;
+        sleep(Duration::from_secs(duration)).await;
     }
     send_message(&format!("注会信息有更新，请前往查看 {}", URL)).await;
     Ok(())
