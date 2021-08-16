@@ -1,4 +1,3 @@
-use anyhow::Result;
 use soup::prelude::*;
 use teloxide_core::{
     payloads::SendMessage,
@@ -10,12 +9,14 @@ use tokio::time::{sleep, Duration};
 const URL: &str = "https://www.dongao.com/zckjs/zkz/202107063478415.shtml";
 const TELEGRAM_TOKEN_KEY: &str = "TELEGRAM_TOKEN";
 const TELEGRAM_TO_KEY: &str = "TELEGRAM_TO";
+const USER_AGENT: &str =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0";
 
 #[tokio::main]
 async fn main() {
     send_message("开始监控注会信息更新……").await;
     loop {
-        let status = get_status_of_js(&get_document().await.expect("unable to get document"));
+        let status = get_status_of_js(&get_document().await);
         if status != "暂未开通" {
             break;
         }
@@ -24,8 +25,17 @@ async fn main() {
     send_message(&format!("注会信息有更新，请前往查看 {}", URL)).await;
 }
 
-async fn get_document() -> Result<String> {
-    Ok(reqwest::get(URL).await.expect("cannot").text().await?)
+async fn get_document() -> String {
+    let client = reqwest::Client::new();
+    client
+        .get(URL)
+        .header("User-Agent", USER_AGENT)
+        .send()
+        .await
+        .expect("cannot get page")
+        .text()
+        .await
+        .expect("cannot get text from page")
 }
 
 fn get_status_of_js(doc: &str) -> String {
